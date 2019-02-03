@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t fsalikutluk/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run fsalikutluk/react-test npm test -- --coverage
+
+  after_success:
+    - docker build -t fsalikutluk/multi-client ./client
+    - docker build -t fsalikutluk/multi-nginx ./nginx
+    - docker build -t fsalikutluk/multi-server ./Server
+    - docker build -t fsalikutluk/multi-worker ./Worker
+    # docker cli login
+    - echo "$DOCKER_PW" | docker login -u "$DOCKER_ID" -- password-stdin
+    # docker push
+    - docker push fsalikutluk/multi-client
+    - docker push fsalikutluk/multi-nginx
+    - docker push fsalikutluk/multi-server
+    - docker push fsalikutluk/multi-worker
